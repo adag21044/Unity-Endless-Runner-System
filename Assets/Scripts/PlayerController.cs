@@ -6,36 +6,24 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     [SerializeField] private float jumpForce = 5f;
     private bool canJump = false;
+    private IJumpBehavior jumpBehavior; // Strategy pattern
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        jumpBehavior = new StandardJump(rb, jumpForce); // Strategy pattern implementation
     }
 
     private void Update()
     {
-        
-
-        // Fare sol tuşuna basılırsa ve yerdeysek zıpla
         if (Input.GetMouseButton(0) && canJump)
         {
-            Jump();
+            jumpBehavior.Jump();
         }
     }
 
-    // Zıplama işlemi
-    private void Jump()
-    {
-        // Zıplama kuvveti yerine doğrudan velocity ayarlıyoruz, bu sabit yükseklik sağlar
-        rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
-    }
-
-    // Yerde olup olmadığını kontrol eden fonksiyon
-    
-
     private void OnCollisionEnter(Collision collision)
     {
-        
         if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
             canJump = true;
@@ -44,7 +32,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionExit(Collision other)
     {
-        if(other.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        if (other.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
             canJump = false;
         }
@@ -52,9 +40,31 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.tag == "Obstacle")
+        if (other.gameObject.CompareTag("Obstacle"))
         {
             SceneManager.LoadScene("Game");
         }
+    }
+}
+
+public interface IJumpBehavior
+{
+    void Jump();
+}
+
+public class StandardJump : IJumpBehavior
+{
+    private Rigidbody rb;
+    private float jumpForce;
+
+    public StandardJump(Rigidbody rb, float jumpForce)
+    {
+        this.rb = rb;
+        this.jumpForce = jumpForce;
+    }
+
+    public void Jump()
+    {
+        rb.velocity = new Vector3(rb.velocity.x, jumpForce, rb.velocity.z);
     }
 }
